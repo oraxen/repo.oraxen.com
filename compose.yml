@@ -1,0 +1,32 @@
+services:
+  nginx:
+    image: valian/docker-nginx-auto-ssl
+    restart: on-failure
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ssl_data:/etc/resty-auto-ssl
+    environment:
+      ALLOWED_DOMAINS: "repo.oraxen.com"
+      SITES: "repo.oraxen.com=reposilite:8080"
+      FORCE_HTTPS: "true"
+
+  reposilite:
+    image: dzikoysk/reposilite:3.5.18
+    ports:
+      - 8080:8080
+    volumes:
+      - ./reposilite:/app/data
+      - ./reposilite/configuration.cdn:/app/configuration.cdn
+    environment:
+      - JAVA_OPTS=-Xmx64M
+      - REPOSILITE_OPTS=--local-configuration=/app/configuration.cdn
+      # Add this line for first run only, then remove it after creating your token:
+      # - REPOSILITE_OPTS=--token admin:secret
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+volumes:
+  ssl_data:
